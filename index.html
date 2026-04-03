@@ -1,0 +1,152 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examination</title>
+  <script src="script/aframe.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+
+  <script>
+    AFRAME.registerComponent("minecraft-flight", {
+      schema: {
+        speed: {
+          default: 10,
+        },
+      },
+
+      init: function () {
+        this.velocity = new THREE.Vector3();
+        this.direction = new THREE.Vector3();
+        this.keys = {};
+
+        window.addEventListener("keydown", (e) => (this.keys[e.code] = true));
+        window.addEventListener("keyup", (e) => (this.keys[e.code] = false));
+      },
+
+      tick: function (time, delta) {
+        const el = this.el;
+        const rotation = el.getAttribute("rotation");
+
+        const speed = this.data.speed * (delta / 1000);
+
+        this.direction.set(0, 0, 0);
+
+        // Forward / Back
+        if (this.keys["KeyW"]) this.direction.z += 1;
+        if (this.keys["KeyS"]) this.direction.z -= 1;
+
+        // Left / Right
+        if (this.keys["KeyA"]) this.direction.x -= 1;
+        if (this.keys["KeyD"]) this.direction.x += 1;
+
+        // Up / Down (Creative flight)
+        if (this.keys["Space"]) this.direction.y += 1;
+        if (this.keys["ShiftLeft"]) this.direction.y -= 1;
+
+        this.direction.normalize();
+
+        // Convert direction based on camera rotation
+        const rad = THREE.MathUtils.degToRad(rotation.y);
+
+        const forward = new THREE.Vector3(Math.sin(rad), 0, Math.cos(rad));
+
+        const right = new THREE.Vector3(Math.cos(rad), 0, -Math.sin(rad));
+
+        this.velocity.set(0, 0, 0);
+
+        this.velocity.add(forward.multiplyScalar(-this.direction.z * speed));
+        this.velocity.add(right.multiplyScalar(this.direction.x * speed));
+        this.velocity.y += this.direction.y * speed;
+
+        el.object3D.position.add(this.velocity);
+      },
+    });
+
+
+  </script>
+</head>
+
+<body>
+  <a-scene>
+    <!--Assest management-->
+    <a-assets>
+      <img src="textures/grass.jpg" alt="grass" id="grass-texture" />
+      <img src="textures/sky.jpg" alt="sky" id="sky-texture" />
+      <img src="textures/sea.jpg" alt="sea" id="sea-texture" />
+      <a-asset-item id="villaModel" src="models/house.glb"></a-asset-item>
+      <a-asset-item id="dogModel" src="models/dog.glb"></a-asset-item>
+      <a-asset-item id="butterflyModel" src="models/butterflies.glb"></a-asset-item>
+      <a-asset-item id="poolModel" src="models/pool.glb"></a-asset-item>
+      <a-asset-item id="shipModel" src="models/ship.glb"></a-asset-item>
+      <a-asset-item id="carrierModel" src="models/carrier_ships.glb"></a-asset-item>
+      <a-asset-item id="orange_bird" src="models/bird_orange.glb"></a-asset-item>
+      <a-asset-item id="rockModel" src="models/rocks.glb"></a-asset-item>
+      <a-asset-item id="blue_bird" src="models/blue_bird.glb"></a-asset-item>
+    </a-assets>
+
+    <!--House model-->
+    <a-entity gltf-model="#villaModel" position="1.5 1.5 0" scale="50 50 50" rotation="0 360 0">
+    </a-entity>
+
+
+
+    <!-- Dog model-->
+    <a-entity gltf-model="#dogModel" position="1 0.15 1" scale="0.005 0.005 0.005" rotation="0 180 0"
+      animation-mixer="clip: 0|rollover_0 ;loop: repeat">
+    </a-entity>
+
+    <!-- Pool model-->
+    <a-entity gltf-model="#poolModel" position="-1.35 0.15 0.55" scale="10 10 10" rotation="0 180 0"
+      animation-mixer="clip: *;loop: repeat; timeScale: 3">
+    </a-entity>
+
+    <!-- Butterful model-->
+    <a-entity gltf-model="#butterflyModel" position="-1.75 0.15 -2" scale="0.7 0.7 0.7" rotation="0 360 0"
+      animation-mixer="clip: *;loop:repeat">
+    </a-entity>
+    <a-entity gltf-model="#butterflyModel" position="-2.75 0.15 3.5" scale="0.5 0.5 0.5" rotation="0 360 0"
+      animation-mixer="clip: *; loop:repeat">
+    </a-entity>
+
+    <!-- Ship model-->
+    <a-entity gltf-model="#shipModel" position="0 -0.50 -5" scale="0.1 0.1 0.1" rotation="0 270 0"
+      animation-mixer="clip: *; loop:repeat">
+    </a-entity>
+
+    <!-- Carrier model-->
+    <a-entity gltf-model="#carrierModel" position="-25 -0.50 -20" scale="0.3 0.3 0.3" rotation="0 270 0"
+      animation-mixer="clip: *; loop:repeat">
+    </a-entity>
+
+    <!-- Orange and blue bird model-->
+    <a-entity gltf-model="#orange_bird" position="2 0.15 3" scale="0.1 0.1 0.1" rotation="0 -180 0"
+      animation-mixer="clip: *;loop: repeat">
+    </a-entity>
+    <a-entity gltf-model="#blue_bird" position="4 0.15 3" scale="0.01 0.01 0.01" rotation="0 -270 0"
+      animation-mixer="clip: *;loop: repeat">
+    </a-entity>
+
+
+
+    <!-- Islands model-->
+    <a-entity gltf-model="#rockModel" position="0 -0.50 -40" scale="2 2 2" rotation="0 360 0">
+    </a-entity>
+    <a-entity gltf-model="#rockModel" position="0 -0.50 40" scale="3 3 3" rotation="0 360 0">
+    </a-entity>
+
+    <!--Camera-->
+    <a-entity camera look-controls minecraft-flight="speed: 2" position="0 2 5">
+    </a-entity>
+
+    <!-- Sky -->
+    <a-sky src="#sky-texture"></a-sky>
+
+    <!--Ground -->
+    <a-plane width="100" height="100" rotation="-90 0 0" position="0 0 0" src="#sea-texture"></a-plane>
+  </a-scene>
+</body>
+
+</html>
